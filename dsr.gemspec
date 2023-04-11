@@ -8,5 +8,8 @@ Gem::Specification.new do |spec|
   spec.license      = "MIT"
   spec.metadata     = {"source_code_uri" => "https://github.com/nakilon/dsr"}
 
+  spec.add_dependency "nakischema"
+  spec.add_dependency "hexapdf"
+
   spec.files        = %w{ LICENSE dsr.gemspec lib/dsr.rb }
 end
