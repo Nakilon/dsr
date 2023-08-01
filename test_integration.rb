@@ -57,22 +57,11 @@ describe :test do
     end.to_json )
   end
 
-  def subgraphs data
-    data.zip.tap do |array|
-      (0...data.size).each do |i|
-        (0...i).to_a.select do |j|
-          array[i].product(array[j]).any?{ |i,j| yield i,j }
-        end.each do |j|
-          array[i].concat array[j]
-          array[j].clear
-        end
-      end
-    end.reject &:empty?
-  end
   it "pdf2struct, find_all_by_text, select_intersecting_vertically_with, link" do
     all = DSR.pdf2struct File.new "enigma.pdf"
     assert_equal "814f2193e4093f5b5a8b8903ab1f914f", Digest::MD5.hexdigest(all.to_json)
     assert_equal 2, all.size
+    # TODO: assert map(&:size); download if needed
 
     all = all.flat_map do |texts|
       a = texts.find_all_by_text "Country of Origin"
@@ -80,16 +69,16 @@ describe :test do
       next [] if a.empty? && b.empty?
       a.zip(b).flat_map do |country, subtotal|
         headers = texts.select_intersecting_vertically_with(country) + [country]
-        subgraphs texts.select{ |_| _.top < country.bottom && _.bottom > subtotal.top } do |a, b|
+        DSR.subgraphs texts.select{ |_| _.top < country.bottom && _.bottom > subtotal.top } do |a, b|
           (a.bottom..a.top).include?((b.top+b.bottom)/2) || (b.bottom..b.top).include?((a.top+a.bottom)/2)
         end.map do |row|
-          t = DSR.link headers, row, "S1"
+          t = DSR.link headers, row, :horizontal, :index, "S1"
           [
-            t["Description"][0],
-            t["S1"][0].to_i,
-            t["Total"][0].to_i,
-            Rational(t["Price"][0]),
-            Rational(t["Amount"][0]),
+            t[2][0].text,
+            t[0][0].text.to_i,
+            t[1][0].text.to_i,
+            Rational(t[6][0].text),
+            Rational(t[7][0].text),
           ]
         end
       end

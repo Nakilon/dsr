@@ -7,7 +7,8 @@ module DSR
     require "json"
     JSON.load(json).tap do |json|
       require "nakischema"
-      Nakischema.validate json, { hash: {
+      Nakischema.validate json, {
+        hash_req: {
         "cropHintsAnnotation" => Hash,
         "fullTextAnnotation" => Hash,
         "imagePropertiesAnnotation" => Hash,
@@ -24,7 +25,11 @@ module DSR
             "locale" => /\A\S(.*\S)?\z/m,
           },
         } },
-      } }
+        },
+        hash_opt: {
+          "localizedObjectAnnotations" => Array,
+        }
+      }
     end["textAnnotations"].map do |text|
       Struct.new text["description"],
                  text["boundingPoly"]["vertices"].map{ |_| _["x"] }.min,
@@ -45,16 +50,21 @@ module DSR
     end
   end
   private_constant :Texts
-  def self.link headers, row, *priority
-    headers = headers.sort_by(&:left).map(&:dup)
-    headers.each_cons(2){ |a, b| a.right, b.left = [a.right, b.left].max, [a.right, b.left].min }
-    headers.first.left = -Float::INFINITY
-    headers.last.right = +Float::INFINITY
-    headers.unshift headers.delete_at headers.index{ |_| priority.include? _.text }
-    row.sort_by(&:left).each_with_object({}) do |cell, h|
-      k = headers.find{ |_| (_.left.._.right).include?((cell.left+cell.right)/2) }.text
-      h[k] ||= []
-      h[k] << cell.text
+  def self.link headers, array, direction, alignment, *priority
+    l, r = case direction
+    when :horizontal ; %i{ left right }
+    when :vertical ; %i{ top bottom }
+    else ; fail "invalid direction"
+    end
+    headers = headers.sort_by(&l).map(&:dup)
+    headers.each_cons(2){ |a, b| a[r], b[l] = [a[r], b[l]].max, [a[r], b[l]].min }
+    headers.first[l] = -Float::INFINITY
+    headers.last[r] = +Float::INFINITY
+    headers.unshift headers.delete_at headers.index{ |_| priority.include? _.text }   # TODO: document/explain this
+    array.sort_by(&l).each_with_object([]) do |cell, a|
+      i = headers.public_send(alignment){ |_| (_[l].._[r]).include?((cell[l]+cell[r])/2) }
+      a[i] ||= []
+      a[i] << cell
     end
   end
   def self.pdf2struct object
@@ -77,6 +87,19 @@ module DSR
     HexaPDF::Document.new(io: object).pages.map do |page|
       processor.new(page).tap(&page.method(:process_contents)).texts
     end
+  end
+
+  def self.subgraphs data
+    data.zip.tap do |array|
+      (0...data.size).each do |i|
+        (0...i).to_a.select do |j|
+          array[i].product(array[j]).any?{ |i,j| yield i,j }
+        end.each do |j|
+          array[i].concat array[j]
+          array[j].clear
+        end
+      end
+    end.reject &:empty?
   end
 
 end
