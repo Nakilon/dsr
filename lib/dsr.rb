@@ -3,9 +3,19 @@ module DSR
   Struct = ::Struct.new :text, :left, :bottom, :right, :top, :width, :height
   private_constant :Struct
 
+  class Texts < Array
+    def find_all_by_text text
+      self.class.new select{ |_| text == _.text }
+    end
+    def select_intersecting_vertically_with item
+      self.class.new (self-[item]).select{ |_| _.bottom >= item.top && _.top <= item.bottom }
+    end
+  end
+  private_constant :Texts
+
   def self.google2struct json
     require "json"
-    JSON.load(json).tap do |json|
+    Texts.new( JSON.load(json).tap do |json|
       require "nakischema"
       Nakischema.validate json, {
         hash_req: {
@@ -38,18 +48,9 @@ module DSR
                  text["boundingPoly"]["vertices"].map{ |_| _["y"] }.min,
                  text["boundingPoly"]["vertices"].map{ |_| _["x"] }.max - text["boundingPoly"]["vertices"].map{ |_| _["x"] }.min,
                  text["boundingPoly"]["vertices"].map{ |_| _["y"] }.max - text["boundingPoly"]["vertices"].map{ |_| _["y"] }.min
-    end
+    end )
   end
 
-  class Texts < Array
-    def find_all_by_text text
-      self.class.new select{ |_| text == _.text }
-    end
-    def select_intersecting_vertically_with item
-      self.class.new (self-[item]).select{ |_| _.top >= item.bottom && _.bottom <= item.top }
-    end
-  end
-  private_constant :Texts
   def self.link headers, array, direction, alignment, *priority
     l, r = case direction
     when :horizontal ; %i{ left right }
@@ -78,8 +79,8 @@ module DSR
       def show_text str
         boxes = decode_text_with_positioning str
         @texts.push Struct.new boxes.string,
-          *boxes.lower_left,
-          *boxes.upper_right,
+          boxes.lower_left[0], -boxes.lower_left[1],
+          boxes.upper_right[0], -boxes.upper_right[1],
           boxes.upper_right[0] - boxes.lower_left[0],
           boxes.lower_left[1] - boxes.upper_right[1]
       end

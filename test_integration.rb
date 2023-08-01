@@ -59,7 +59,7 @@ describe :test do
 
   it "pdf2struct, find_all_by_text, select_intersecting_vertically_with, link" do
     all = DSR.pdf2struct File.new "enigma.pdf"
-    assert_equal "814f2193e4093f5b5a8b8903ab1f914f", Digest::MD5.hexdigest(all.to_json)
+    assert_equal "616dcb7d27164632eb592d610c5d6f8f", Digest::MD5.hexdigest(all.to_json)
     assert_equal 2, all.size
     # TODO: assert map(&:size); download if needed
 
@@ -69,8 +69,8 @@ describe :test do
       next [] if a.empty? && b.empty?
       a.zip(b).flat_map do |country, subtotal|
         headers = texts.select_intersecting_vertically_with(country) + [country]
-        DSR.subgraphs texts.select{ |_| _.top < country.bottom && _.bottom > subtotal.top } do |a, b|
-          (a.bottom..a.top).include?((b.top+b.bottom)/2) || (b.bottom..b.top).include?((a.top+a.bottom)/2)
+        DSR.subgraphs texts.select{ |_| _.top > country.bottom && _.bottom < subtotal.top } do |a, b|
+          (a.top..a.bottom).include?((b.top+b.bottom)/2) || (b.top..b.bottom).include?((a.top+a.bottom)/2)
         end.map do |row|
           t = DSR.link headers, row, :horizontal, :index, "S1"
           [
