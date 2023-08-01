@@ -60,7 +60,7 @@ module DSR
     headers.each_cons(2){ |a, b| a[r], b[l] = [a[r], b[l]].max, [a[r], b[l]].min }
     headers.first[l] = -Float::INFINITY
     headers.last[r] = +Float::INFINITY
-    headers.unshift headers.delete_at headers.index{ |_| priority.include? _.text }   # TODO: document/explain this
+    headers.unshift headers.delete_at headers.index{ |_| priority.include? _.text } unless priority.empty?   # TODO: document/explain this
     array.sort_by(&l).each_with_object([]) do |cell, a|
       i = headers.public_send(alignment){ |_| (_[l].._[r]).include?((cell[l]+cell[r])/2) }
       a[i] ||= []
