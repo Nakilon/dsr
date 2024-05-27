@@ -1,4 +1,4 @@
-require "minitest/autorun"
+require "maxitest/autorun"
 require_relative "lib/dsr"
 
 require "digest"
@@ -11,7 +11,7 @@ describe :test do
       File.write "temp.json", URI("https://storage.yandexcloud.net/gems.nakilon.pro/dsr/patent_imgf.json").open(&:read).tap{ |_| assert_equal "00b38499ce020c45657555759c508fb6", Digest::MD5.hexdigest(_) }
     end
     all = DSR.google2struct File.read "temp.json"
-    assert_equal "d5b612125768413656fed71792d03c3c", Digest::MD5.hexdigest(all.to_json)
+    assert_equal "d6780516f26293b7f77ee103813d2d5b", Digest::MD5.hexdigest(all.to_json)
 
     all.shift
     all.reject! do |_|
@@ -59,7 +59,7 @@ describe :test do
 
   it "pdf2struct, find_all, select_intersecting_vertically_with, link" do
     all = DSR.pdf2struct File.new "enigma.pdf"
-    assert_equal "616dcb7d27164632eb592d610c5d6f8f", Digest::MD5.hexdigest(all.to_json)
+    assert_equal "7ed9bc7deacba638eadccd11a6c40619", Digest::MD5.hexdigest(all.to_json)
     assert_equal 2, all.size
     # TODO: assert map(&:size); download if needed
 

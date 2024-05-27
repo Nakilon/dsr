@@ -1,7 +1,9 @@
 module DSR
 
-  Struct = ::Struct.new :text, :left, :bottom, :right, :top, :width, :height
-  private_constant :Struct
+  StructLinkable = ::Struct.new :left, :bottom, :right, :top
+  private_constant :StructLinkable
+  StructWithText = ::Struct.new :text, *StructLinkable.members, :width, :height
+  private_constant :StructWithText
 
   class Texts < Array
     def find_all text_or_regex
@@ -41,7 +43,7 @@ module DSR
         }
       }
     end["textAnnotations"].map do |text|
-      Struct.new text["description"],
+      StructWithText.new text["description"],
                  text["boundingPoly"]["vertices"].map{ |_| _["x"] }.min,
                  text["boundingPoly"]["vertices"].map{ |_| _["y"] }.max,
                  text["boundingPoly"]["vertices"].map{ |_| _["x"] }.max,
@@ -59,8 +61,8 @@ module DSR
     end
     headers = headers.sort_by(&l).map(&:dup)
     headers.each_cons(2){ |a, b| a[r], b[l] = [a[r], b[l]].max, [a[r], b[l]].min }
-    headers.first[l] = -Float::INFINITY
-    headers.last[r] = +Float::INFINITY
+    headers.first[l] = -::Float::INFINITY
+    headers.last[r] = +::Float::INFINITY
     headers.unshift headers.delete_at headers.index{ |_| priority.include? _.text } unless priority.empty?   # TODO: document/explain this
     array.sort_by(&l).each_with_object([]) do |cell, a|
       i = headers.public_send(alignment){ |_| (_[l].._[r]).include?((cell[l]+cell[r])/2) }
@@ -79,7 +81,7 @@ module DSR
       end
       def show_text str
         boxes = decode_text_with_positioning str
-        @texts.push Struct.new boxes.string,
+        @texts.push StructWithText.new boxes.string,
           boxes.lower_left[0], -boxes.lower_left[1],
           boxes.upper_right[0], -boxes.upper_right[1],
           boxes.upper_right[0] - boxes.lower_left[0],
