@@ -10,6 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "nakischema"
   spec.add_dependency "hexapdf"
+  spec.add_dependency "ferrum"
 
   spec.files        = %w{ LICENSE dsr.gemspec lib/dsr.rb }
 end

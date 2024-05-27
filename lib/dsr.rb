@@ -1,8 +1,8 @@
 module DSR
 
-  StructLinkable = ::Struct.new :left, :bottom, :right, :top
+  StructLinkable = ::Struct.new :ref, :left, :bottom, :right, :top
   private_constant :StructLinkable
-  StructWithText = ::Struct.new :text, *StructLinkable.members, :width, :height
+  StructWithText = ::Struct.new :text, *StructLinkable.members.drop(1), :width, :height
   private_constant :StructWithText
 
   class Texts < Array
@@ -104,6 +104,21 @@ module DSR
         end
       end
     end.reject &:empty?
+  end
+
+  def self.nodes2struct nodes
+    nodes.map do |node|
+      StructLinkable.new(node, *::JSON.load(node.page.evaluate(<<~HEREDOC, node)))
+        ( function(node) {
+          var x = scrollX, y = scrollY;
+          var rect = JSON.parse(JSON.stringify(node.getBoundingClientRect()));
+          rect.top += scrollY;
+          rect.left += scrollX;
+          var t = JSON.stringify( [rect.left, rect.bottom, rect.right, rect.top] );
+          return t;
+        } )(arguments[0])
+      HEREDOC
+    end
   end
 
 end
