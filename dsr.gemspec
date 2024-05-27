@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name         = "dsr"
-  spec.version      = "0.0.0"
+  spec.version      = "0.1.0"
   spec.summary      = "[WIP] Document Structure Recognizer -- currently a collection of common routines I use to build A.I.s"
 
   spec.author       = "Victor Maslov aka Nakilon"

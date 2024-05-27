@@ -4,8 +4,8 @@ module DSR
   private_constant :Struct
 
   class Texts < Array
-    def find_all_by_text text
-      self.class.new select{ |_| text == _.text }
+    def find_all text_or_regex
+      self.class.new select{ |_| text_or_regex === _.text }
     end
     def select_intersecting_vertically_with item
       self.class.new (self-[item]).select{ |_| _.bottom >= item.top && _.top <= item.bottom }
@@ -68,6 +68,7 @@ module DSR
       a[i] << cell
     end
   end
+
   def self.pdf2struct object
     require "hexapdf"
     processor = Class.new HexaPDF::Content::Processor do

@@ -57,15 +57,15 @@ describe :test do
     end.to_json )
   end
 
-  it "pdf2struct, find_all_by_text, select_intersecting_vertically_with, link" do
+  it "pdf2struct, find_all, select_intersecting_vertically_with, link" do
     all = DSR.pdf2struct File.new "enigma.pdf"
     assert_equal "616dcb7d27164632eb592d610c5d6f8f", Digest::MD5.hexdigest(all.to_json)
     assert_equal 2, all.size
     # TODO: assert map(&:size); download if needed
 
     all = all.flat_map do |texts|
-      a = texts.find_all_by_text "Country of Origin"
-      b = texts.find_all_by_text "Subtotal"
+      a = texts.find_all "Country of Origin"
+      b = texts.find_all "Subtotal"
       next [] if a.empty? && b.empty?
       a.zip(b).flat_map do |country, subtotal|
         headers = texts.select_intersecting_vertically_with(country) + [country]

@@ -1,3 +1,4 @@
 /temp*
 /Gemfile.lock
 /*.pdf
+/pkg/
