@@ -121,4 +121,14 @@ module DSR
     end
   end
 
+  def self.capybara2struct nodes
+    nodes.map do |node|
+      StructLinkable.new node,
+        node.rect.x,
+        node.rect.y + node.rect.height,
+        node.rect.x + node.rect.width,
+        node.rect.y
+    end
+  end
+
 end
