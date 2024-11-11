@@ -123,11 +123,12 @@ module DSR
 
   def self.capybara2struct nodes
     nodes.map do |node|
+      rect = node.rect
       StructLinkable.new node,
-        node.rect.x,
-        node.rect.y + node.rect.height,
-        node.rect.x + node.rect.width,
-        node.rect.y
+        rect.x,
+        rect.y + rect.height,
+        rect.x + rect.width,
+        rect.y
     end
   end
 
